@@ -44,7 +44,7 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
         i = 0
         for row in rows:
             # Créer un objet Node avec comme label Film et les propriétés adéquates
-            # A COMPLETER
+            n = {"idFilm": row[0], "primaryTitle": row[1], "startYear": row[2]}
             importData.append(n)
             i += 1
 
@@ -56,14 +56,37 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
             print(error)
 
     # Names
-    # En vous basant sur ce qui a été fait dans la section précédente, exportez les données de la table tNames
-    # A COMPLETER
+    # En vous basant sur ce qui a été fait dans la section précédente, exportez les données de la table tArtist
+    exportedCount = 0
+    cursor.execute("SELECT COUNT(1) FROM TArtist")
+    totalCount = cursor.fetchval()
+    cursor.execute("SELECT idArtist, primaryName, birthYear FROM TArtist")
+    rows = cursor.fetchmany(BATCH_SIZE)
+    while True:
+        importData = []
+        rows = cursor.fetchmany(BATCH_SIZE)
+        if not rows:
+            break
+
+        i = 0
+        for row in rows:
+            # Créer un objet Node avec comme label Artist et les propriétés adéquates
+            n = {"idArtist": row[0], "primaryName": row[1], "birthYear": row[2]}
+            importData.append(n)
+            i += 1
+
+        try:
+            create_nodes(graph.auto(), importData, labels={"Artist"})
+            exportedCount += len(rows)
+            print(f"{exportedCount}/{totalCount} title records exported to Neo4j")
+        except Exception as error:
+            print(error)
 
     try:
         print("Indexing Film nodes...")
-        graph.run("CREATE INDEX ON :Film(idFilm)")
+        graph.run("CREATE INDEX FOR (n:Film) ON (n.idFilm)")
         print("Indexing Name (Artist) nodes...")
-        graph.run("CREATE INDEX ON :Artist(idArtist)")
+        graph.run("CREATE INDEX FOR (n:Artist) ON (n.idArtist)")
     except Exception as error:
         print(error)
 
