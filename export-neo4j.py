@@ -44,7 +44,7 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
         i = 0
         for row in rows:
             # Créer un objet Node avec comme label Film et les propriétés adéquates
-            n = {"idFilm": row[0], "primaryTitle": row[1], "startYear": row[2]}
+            n = Node("Film", idFilm=row[0], primaryTitle=row[1], startYear=row[2])
             importData.append(n)
             i += 1
 
@@ -71,7 +71,7 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
         i = 0
         for row in rows:
             # Créer un objet Node avec comme label Artist et les propriétés adéquates
-            n = {"idArtist": row[0], "primaryName": row[1], "birthYear": row[2]}
+            n = Node("Artist", idArtist=row[0], primaryName=row[1], birthYear=row[2])
             importData.append(n)
             i += 1
 
@@ -112,8 +112,7 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
                 # (les tuples nécessaires ont déjà été créés ci-dessus dans la boucle for précédente)
                 # https://py2neo.org/2021.1/bulk/index.html
                 # ATTENTION: remplacez les espaces par des _ pour nommer les types de relation
-                # A COMPLETER
-                None # Remplacez None par votre code
+                create_relationships(graph.auto(), importData[cat], cat.replace(" ", "_").upper(), start_node_key=("Artist", "idArtist"), end_node_key=("Film", "idFilm"))
             exportedCount += len(rows)
             print(f"{exportedCount}/{totalCount} relationships exported to Neo4j")
         except Exception as error:
